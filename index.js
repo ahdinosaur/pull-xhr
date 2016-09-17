@@ -1,15 +1,10 @@
 var pull = require('pull-stream')
 var pullDefer = require('pull-defer')
-var pullJson = require('pull-json')
+var pullJson = require('pull-json-doubleline')
+var pullPeek = require('pull-peek')
 var xhr = require('xhr')
 
-// url
-// body
-// requestType
-// responseType
-
-var jsonType = 'application/json'
-var dlSuffix = '; boundary=NLNL'
+var jsonStreamType = 'application/json; boundary=NLNL'
 
 module.exports = {
   async: async,
@@ -17,72 +12,64 @@ module.exports = {
   sink: sink
 }
 
-function source (options) {
-  var xhrOptions = setup(options)
+function source (options, cb) {
   var defer = pullDefer.source()
-  if (subMatch(jsonType, resp.headers['content-type'])) {
-    var body = JSON.stringify(options.json)
-    stream = pullJson(stream)
+  if (options.responseType === 'json') {
+    var isJsonStream = true
+    options.headers['accept'] = jsonStreamType
+    delete options.responseType
   }
-  xhr(xhrOptions, function (err, resp, body) {
+  async(options, function (err, body, resp) {
+    if (err) return defer.abort(err)
     var stream = pull.once(body)
-    if (subMatch(jsonType, resp.headers['content-type'])) {
+    if (isJsonStream) {
       stream = pullJson(stream)
     }
     defer.resolve(stream)
+    cb(err, body, resp)
   })
   return defer
 }
 
-function sink (options) {
-  options = setup(options)
+function sink (options, cb) {
+  if (options.responseType === 'json') {
+    options.headers['accept'] = jsonStreamType
+    delete options.responseType
+  }
+  var serializer = pullDefer.through()
+  return pull(
+    pullPeek(function (end, chunk) {
+      if (Buffer.isBuffer(chunk)) {
+        serializer.resolve(pull.through())
+      } else {
+        serializer.resolve(pullJson.stringify())
+      }
+    }),
+    serializer,
+    pull.collect(function (err, chunks) {
+      if (err) return cb(err)
+      options.body = Buffer.concat(chunks).buffer
 
+      async(options, cb)
+    })
+  )
 }
 
 function async (options, cb) {
   // if cb is not provided, turn into a continuable.
-  if (!cb) return function (cb) { async(opts, cb) }
+  if (!cb) return function (cb) { async(options, cb) }
 
-  xhr(options, cb)
-}
-
-function setup (type, options) {
-  var json = options.json
-  var headers = options.headers
-
-  if (options.json) {
-    headers = setJsonHeaders({
-      json: json,
-      type: type
-    }, headers)
-  }
-
-  return extend(options, {
-    headers: headers,
-    json: null
+  return xhr(options, function (err, resp, body) {
+    if (options.responseType === 'json' && typeof body === 'string') {
+      // IE doesn't parse responses as JSON without the json attribute,
+      // even with responseType: 'json'.
+      // See https://github.com/Raynos/xhr/issues/123
+      try {
+        body = JSON.parse(body)
+      } catch (e) {
+        // not parseable anyway, don't worry about it
+      }
+    }
+    cb(err, body, resp)
   })
-}
-
-function setJsonHeaders (options, headers) {
-  var json = options.json
-  var type = options.type
-
-  if (typeof json === 'boolean') {
-    json = { source: json, sink: json }
-  }
-
-  if (json.source) {
-    headers['accept'] = jsonType
-    if (type === 'source') headers['accept'] += dlSuffix
-  }
-  if (json.sink) {
-    headers['content-type'] = jsonType
-    if (type === 'sink') headers['content-type'] += dlSuffix
-  }
-
-  return headers
-}
-
-function subMatch (match, value) {
-  return value.substring(0, match.length) === match
 }
