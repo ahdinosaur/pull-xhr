@@ -5,6 +5,15 @@ var pullPeek = require('pull-peek')
 var xhr = require('xhr')
 
 var jsonStreamType = 'application/json; boundary=NLNL'
+/*
+
+IDEA: stream out progress events
+
+for async return progress stream
+
+for source or sink return progress stream mixed with other stream
+
+*/
 
 module.exports = {
   async: async,
