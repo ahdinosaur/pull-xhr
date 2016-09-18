@@ -1,3 +1,4 @@
+var defined = require('defined')
 var pull = require('pull-stream')
 var pullDefer = require('pull-defer')
 var pullJson = require('pull-json-doubleline')
@@ -23,9 +24,10 @@ module.exports = {
 
 function source (options, cb) {
   var defer = pullDefer.source()
-  if (options.responseType === 'json') {
-    var isJsonStream = true
-    options.headers['accept'] = jsonStreamType
+  var isJsonStream = options.responseType === 'json'
+  if (isJsonStream) {
+    options.headers = defined(options.headers, {})
+    options.headers['accept'] = defined(options.headers['accept'], jsonStreamType)
     delete options.responseType
   }
   async(options, function (err, body, resp) {
@@ -35,50 +37,36 @@ function source (options, cb) {
       stream = pullJson(stream)
     }
     defer.resolve(stream)
-    cb(err, body, resp)
+    cb && cb(err, body, resp)
   })
   return defer
 }
 
 function sink (options, cb) {
-  if (options.responseType === 'json') {
-    options.headers['accept'] = jsonStreamType
-    delete options.responseType
-  }
   var serializer = pullDefer.through()
   return pull(
     pullPeek(function (end, chunk) {
       if (Buffer.isBuffer(chunk)) {
         serializer.resolve(pull.through())
       } else {
+        options.headers = defined(options.headers, {})
+        options.headers['content-type'] = defined(options.headers['content-type'], jsonStreamType)
         serializer.resolve(pullJson.stringify())
       }
     }),
     serializer,
     pull.collect(function (err, chunks) {
       if (err) return cb(err)
-      options.body = Buffer.concat(chunks).buffer
+      options.body = Buffer.concat(chunks.map(Buffer))
 
       async(options, cb)
     })
   )
 }
 
-function async (options, cb) {
-  // if cb is not provided, turn into a continuable.
-  if (!cb) return function (cb) { async(options, cb) }
 
+function async (options, cb) {
   return xhr(options, function (err, resp, body) {
-    if (options.responseType === 'json' && typeof body === 'string') {
-      // IE doesn't parse responses as JSON without the json attribute,
-      // even with responseType: 'json'.
-      // See https://github.com/Raynos/xhr/issues/123
-      try {
-        body = JSON.parse(body)
-      } catch (e) {
-        // not parseable anyway, don't worry about it
-      }
-    }
     cb(err, body, resp)
   })
 }

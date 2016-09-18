@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "standard",
-    "test": "run-browser test/index.js -b -m test/mock-server.js | tap-spec",
-    "browser": "run-browser -m test/mock-server.js test/index.js"
+    "test": "browserify test/index.js | tape-run -m test/mock-server.js"
   },
   "browserify": {
     "transform": []
@@ -23,13 +22,14 @@
   },
   "homepage": "https://github.com/ahdinosaur/pull-xhr#readme",
   "devDependencies": {
-    "pull-test": "^1.2.3",
-    "run-browser": "github:naugtur/run-browser",
+    "browserify": "^13.1.0",
     "standard": "^8.0.0",
-    "tap-spec": "^4.1.1",
-    "tape": "^4.6.0"
+    "stream-to-pull-stream": "^1.7.0",
+    "tape": "^4.6.0",
+    "tape-run": "github:ahdinosaur/tape-run"
   },
   "dependencies": {
+    "defined": "^1.0.0",
     "pull-defer": "^0.2.2",
     "pull-json-doubleline": "^2.0.0",
     "pull-peek": "0.0.0",
