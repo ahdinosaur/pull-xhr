@@ -118,6 +118,7 @@ test('handles binary source stream', function (assert) {
 
 test('handles sink stream', function (assert) {
   var sink = xhr.sink({
+    method: 'POST',
     url: '/mock/sink',
     responseType: 'json'
   }, function (err, result) {
@@ -134,7 +135,8 @@ test('handles sink stream', function (assert) {
 
 test('handles binary sink stream', function (assert) {
   var sink = xhr.sink({
-    url: '/mock/sink',
+    method: 'POST',
+    url: '/mock/sink-binary',
     responseType: 'json'
   }, function (err, result) {
     assert.ifError(err)
@@ -143,7 +145,10 @@ test('handles binary sink stream', function (assert) {
   })
 
   pull(
-    pull.values(['asdf', 'jkl;']),
+    pull.values([
+      new Buffer('asdf'),
+      new Buffer('jkl;')
+    ]),
     sink
   )
 })

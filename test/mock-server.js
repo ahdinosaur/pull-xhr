@@ -3,7 +3,7 @@ const pullJson = require('pull-json-doubleline')
 const toPull = require('stream-to-pull-stream')
 
 module.exports = function handler (req, res) {
-  console.log('mock:', req.url)
+  console.log('mock:', req.method, req.url)
   if (req.url === '/mock/200ok') {
     res.statusCode = 200
     res.end('')
@@ -22,10 +22,7 @@ module.exports = function handler (req, res) {
         { c: 'd' }
       ]),
       pullJson.stringify(),
-      pull.drain(
-        (s) => res.write(s),
-        (err) => res.end(err)
-      )
+      toPull.sink(res)
     )
   } else if (req.url === '/mock/source-binary') {
     pull(
@@ -36,7 +33,6 @@ module.exports = function handler (req, res) {
       toPull.sink(res)
     )
   } else if (req.url === '/mock/sink') {
-    res.setHeader('content-type', 'application/json')
     var i = 0
     pull(
       toPull.source(req),
@@ -50,7 +46,23 @@ module.exports = function handler (req, res) {
         else cb(new Error('unexpected request'))
       }),
       pull.drain(null, function (err) {
-        if (err) res.end(err)
+        if (err || i !== 2) res.end('{ "value": "notOk" }')
+        else res.end('{ "value": "ok" }')
+      })
+    )
+  } else if (req.url === '/mock/sink-binary') {
+    var seen = false
+    pull(
+      toPull.source(req),
+      pull.asyncMap(function (chunk, cb) {
+        if (chunk.toString() === 'asdfjkl;') {
+          seen = true
+          cb(null, chunk)
+        }
+        else cb(new Error('unexpected request'))
+      }),
+      pull.drain(null, function (err) {
+        if (err || !seen) res.end('{ "value": "notOk" }')
         else res.end('{ "value": "ok" }')
       })
     )

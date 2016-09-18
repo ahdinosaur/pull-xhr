@@ -57,7 +57,7 @@ function sink (options, cb) {
     serializer,
     pull.collect(function (err, chunks) {
       if (err) return cb(err)
-      options.body = Buffer.concat(chunks.map(Buffer))
+      options.body = Buffer.concat(chunks.map(Buffer)).buffer
 
       async(options, cb)
     })

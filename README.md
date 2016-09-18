@@ -1,6 +1,6 @@
 # pull-xhr
 
-[`window.XMLHttpRequest`](https://github.com/naugtur/xhr) as a [`pull-stream`](https://pull-stream.github.io)
+[`window.XMLHttpRequest`](https://github.com/naugtur/xhr) as a (pseudo) [`pull-stream`](https://pull-stream.github.io)
 
 ```shell
 npm install --save pull-xhr
