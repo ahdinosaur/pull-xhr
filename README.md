@@ -1,18 +1,26 @@
 # pull-xhr
 
-window.XMLHttpRequest as a pull stream
+[`window.XMLHttpRequest`](https://github.com/naugtur/xhr) as a [`pull-stream`](https://pull-stream.github.io)
 
 ```shell
 npm install --save pull-xhr
 ```
 
-## example
+## api
 
-see [./example](https://ahdinosaur.github.io/pull-xhr)
+### `xhr = require('pull-xhr')`
 
-## usage
+## xhr.async(opts, cb(err, body, resp))
 
-### `pullXhr = require('pull-xhr')`
+don't use streams at all. just ask a question and get an answer.
+
+## xhr.source(opts, cb (err, resp)) => source
+
+use for downloads. the source is the response.
+
+## xhr.sink(opts, cb(err, body, resp)) => sink
+
+use for uploads. the sink is the request.
 
 ## license
 

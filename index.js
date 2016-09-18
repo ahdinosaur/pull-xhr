@@ -37,7 +37,7 @@ function source (options, cb) {
       stream = pullJson(stream)
     }
     defer.resolve(stream)
-    cb && cb(err, body, resp)
+    cb && cb(err, resp)
   })
   return defer
 }
