@@ -87,7 +87,7 @@ function async (options, cb) {
 
   var url = xhr.url = defined(options.url)
   var method = xhr.method = defined(options.method, 'GET')
-  var responseType = xhr.responseType = defined(options.responseType, 'text')
+  var responseType = defined(options.responseType, 'text')
   var headers = xhr.headers = extend(options.headers)
   var body = defined(options.body, null)
 
@@ -124,6 +124,9 @@ function async (options, cb) {
       xhr.setRequestHeader(key, headers[key])
     }
   }
+
+  // has to be after open (IE 10-11)
+  xhr.responseType = responseType
 
   if (typeof options.beforeSend === 'function') {
     options.beforeSend(xhr)
