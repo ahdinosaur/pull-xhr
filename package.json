@@ -23,7 +23,7 @@
   "homepage": "https://github.com/ahdinosaur/pull-xhr#readme",
   "devDependencies": {
     "browserify": "^13.1.0",
-    "standard": "^8.0.0",
+    "standard": "^8.1.0",
     "stream-to-pull-stream": "^1.7.0",
     "tape": "^4.6.0",
     "tape-run": "github:ahdinosaur/tape-run"

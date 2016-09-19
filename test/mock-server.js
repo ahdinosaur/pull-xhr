@@ -59,8 +59,7 @@ module.exports = function handler (req, res) {
         if (chunk.toString() === 'asdfjkl;') {
           seen = true
           cb(null, chunk)
-        }
-        else cb(new Error('unexpected request'))
+        } else cb(new Error('unexpected request'))
       }),
       pull.drain(null, function (err) {
         if (err || !seen) res.end('{ "value": "notOk" }')

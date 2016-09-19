@@ -61,7 +61,7 @@ test('times out to an error ', function (assert) {
 })
 
 test('handles error', function (assert) {
-  var req = xhr.async({
+  xhr.async({
     url: 'http://nothing'
   }, function (err, body, resp) {
     assert.ok(err instanceof Error, 'callback should get an error')

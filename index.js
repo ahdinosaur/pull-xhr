@@ -77,10 +77,9 @@ function sink (options, cb) {
   )
 }
 
-
 function async (options, cb) {
   options = defined(options, {})
-  
+
   var xhr = defined(options.xhr, null)
   if (!xhr) {
     xhr = new Xhr.XMLHttpRequest()
@@ -93,12 +92,12 @@ function async (options, cb) {
   var body = defined(options.body, options.data, null)
 
   if (!body && 'json' in options && method !== 'GET' && method !== 'HEAD') {
-    headers["content-type"] || headers["Content-Type"] || (headers["Content-Type"] = "application/json") //Don't override existing accept header declared by user
+    headers['content-type'] || headers['Content-Type'] || (headers['Content-Type'] = 'application/json') // Don't override existing accept header declared by user
     body = JSON.stringify(options.json, null, 2)
   }
 
   if (responseType === 'json') {
-    headers["accept"] || headers["Accept"] || (headers["Accept"] = "application/json") //Don't override existing accept header declared by user
+    headers['accept'] || headers['Accept'] || (headers['Accept'] = 'application/json') // Don't override existing accept header declared by user
   }
 
   if (typeof options.timeout === 'number') {
@@ -120,7 +119,7 @@ function async (options, cb) {
   xhr.withCredentials = !!options.withCredentials
 
   // has to be after open
-  for (key in headers) {
+  for (var key in headers) {
     if (headers.hasOwnProperty(key)) {
       xhr.setRequestHeader(key, headers[key])
     }
@@ -131,11 +130,11 @@ function async (options, cb) {
   }
 
   xhr.send(body)
-  
+
   return xhr
 
   function handleError (err) {
-    if(!(err instanceof Error)){
+    if (!(err instanceof Error)) {
       var type = err && err.type || 'unknown'
       var message = 'XMLHttpRequest Error: ' + type
       err = new Error(message)
@@ -148,8 +147,8 @@ function async (options, cb) {
 
   function handleSuccess (ev) {
     var response = getResponse()
-    var err 
-    if (xhr.status !== 0){
+    var err
+    if (xhr.status !== 0) {
       response.headers = parseHeaders(xhr.getAllResponseHeaders())
     } else {
       err = new Error('XMLHttpRequest Error: internal')
