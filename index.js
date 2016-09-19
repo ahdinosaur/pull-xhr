@@ -140,30 +140,15 @@ function async (options, cb) {
       err = new Error(message)
     }
 
-    var response = {
-      body: undefined,
-      headers: {},
-      statusCode: xhr.status,
-      method: method,
-      url: url,
-      rawRequest: xhr
-    }
+    var response = getResponse()
 
-    cb(err, response)
+    cb(err, response.body, response)
   }
 
   function handleSuccess (ev) {
-    var response = {}
+    var response = getResponse()
     var err 
     if (xhr.status !== 0){
-      response = {
-        body: getBody(),
-        statusCode: xhr.status,
-        method: method,
-        headers: {},
-        url: url,
-        rawRequest: xhr
-      }
       response.headers = parseHeaders(xhr.getAllResponseHeaders())
     } else {
       err = new Error('XMLHttpRequest Error: internal')
@@ -181,5 +166,16 @@ function async (options, cb) {
     }
 
     return body
+  }
+
+  function getResponse () {
+    return {
+      body: getBody(),
+      statusCode: xhr.status,
+      method: method,
+      headers: {},
+      url: url,
+      rawRequest: xhr
+    }
   }
 }

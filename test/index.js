@@ -12,10 +12,9 @@ test('constructs and calls callback without throwing', function (assert) {
   })
 })
 
-test.skip('can GET a url (cross-domain)', function (assert) {
+test('can GET a url (cross-domain)', function (assert) {
   xhr.async({
-    url: 'http://www.mocky.io/v2/55a02cb72651260b1a94f024',
-    useXDR: true
+    url: 'http://www.mocky.io/v2/55a02cb72651260b1a94f024'
   }, function (err, body, resp) {
     assert.ifError(err, 'no err')
     assert.equal(resp.statusCode, 200)
@@ -27,20 +26,15 @@ test.skip('can GET a url (cross-domain)', function (assert) {
   })
 })
 
-test.skip("returns http error responses like npm's request (cross-domain)", function (assert) {
-  if (!window.XDomainRequest) {
-    xhr.async({
-      url: 'http://www.mocky.io/v2/55a02d63265126221a94f025',
-      useXDR: true
-    }, function (err, body, resp) {
-      assert.ifError(err, 'no err')
-      assert.equal(resp.statusCode, 404)
-      assert.equal(typeof resp.rawRequest, 'object')
-      assert.end()
-    })
-  } else {
+test("returns http error responses like npm's request (cross-domain)", function (assert) {
+  xhr.async({
+    url: 'http://www.mocky.io/v2/55a02d63265126221a94f025'
+  }, function (err, body, resp) {
+    assert.ifError(err, 'no err')
+    assert.equal(resp.statusCode, 404)
+    assert.equal(typeof resp.rawRequest, 'object')
     assert.end()
-  }
+  })
 })
 
 test('returns a falsy body for 204 responses', function (assert) {
@@ -54,20 +48,19 @@ test('returns a falsy body for 204 responses', function (assert) {
   })
 })
 
-test.skip('times out to an error ', function (assert) {
+test('times out to an error ', function (assert) {
   xhr.async({
     timeout: 1,
     url: '/mock/timeout'
   }, function (err, body, resp) {
     assert.ok(err instanceof Error, 'should return error')
-    assert.equal(err.message, 'XMLHttpRequest timeout')
-    assert.equal(err.code, 'ETIMEDOUT')
+    assert.equal(err.message, 'XMLHttpRequest Error: timeout')
     assert.equal(resp.statusCode, 0)
     assert.end()
   })
 })
 
-test('handles 404', function (assert) {
+test('handles error', function (assert) {
   var req = xhr.async({
     url: 'http://nothing'
   }, function (err, body, resp) {
