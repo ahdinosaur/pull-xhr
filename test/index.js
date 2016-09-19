@@ -1,5 +1,6 @@
 const test = require('tape')
 const pull = require('pull-stream')
+const Buffer = require('buffer').Buffer
 
 const xhr = require('../')
 
@@ -11,9 +12,9 @@ test('constructs and calls callback without throwing', function (assert) {
   })
 })
 
-test('[func] Can GET a url (cross-domain)', function (assert) {
+test.skip('can GET a url (cross-domain)', function (assert) {
   xhr.async({
-    uri: 'http://www.mocky.io/v2/55a02cb72651260b1a94f024',
+    url: 'http://www.mocky.io/v2/55a02cb72651260b1a94f024',
     useXDR: true
   }, function (err, body, resp) {
     assert.ifError(err, 'no err')
@@ -26,10 +27,10 @@ test('[func] Can GET a url (cross-domain)', function (assert) {
   })
 })
 
-test("[func] Returns http error responses like npm's request (cross-domain)", function (assert) {
+test.skip("returns http error responses like npm's request (cross-domain)", function (assert) {
   if (!window.XDomainRequest) {
     xhr.async({
-      uri: 'http://www.mocky.io/v2/55a02d63265126221a94f025',
+      url: 'http://www.mocky.io/v2/55a02d63265126221a94f025',
       useXDR: true
     }, function (err, body, resp) {
       assert.ifError(err, 'no err')
@@ -42,9 +43,9 @@ test("[func] Returns http error responses like npm's request (cross-domain)", fu
   }
 })
 
-test('[func] Returns a falsy body for 204 responses', function (assert) {
+test('returns a falsy body for 204 responses', function (assert) {
   xhr.async({
-    uri: '/mock/no-content'
+    url: '/mock/no-content'
   }, function (err, body, resp) {
     assert.ifError(err, 'no err')
     assert.notOk(body, 'body should be falsey')
@@ -53,10 +54,10 @@ test('[func] Returns a falsy body for 204 responses', function (assert) {
   })
 })
 
-test('[func] Times out to an error ', function (assert) {
+test.skip('times out to an error ', function (assert) {
   xhr.async({
     timeout: 1,
-    uri: '/mock/timeout'
+    url: '/mock/timeout'
   }, function (err, body, resp) {
     assert.ok(err instanceof Error, 'should return error')
     assert.equal(err.message, 'XMLHttpRequest timeout')
@@ -66,15 +67,14 @@ test('[func] Times out to an error ', function (assert) {
   })
 })
 
-test('handles errorFunc call with no arguments provided', function (assert) {
-  var req = xhr.async({}, function (err) {
+test('handles 404', function (assert) {
+  var req = xhr.async({
+    url: 'http://nothing'
+  }, function (err, body, resp) {
     assert.ok(err instanceof Error, 'callback should get an error')
-    assert.equal(err.message, 'Unknown XMLHttpRequest Error', 'error message incorrect')
+    assert.equal(err.message, 'XMLHttpRequest Error: error', 'error message incorrect')
+    assert.end()
   })
-  assert.doesNotThrow(function () {
-    req.onerror()
-  }, 'should not throw when error handler called without arguments')
-  assert.end()
 })
 
 test('handles source stream', function (assert) {
@@ -146,8 +146,8 @@ test('handles binary sink stream', function (assert) {
 
   pull(
     pull.values([
-      new Buffer('asdf'),
-      new Buffer('jkl;')
+      Buffer('asdf'),
+      Buffer('jkl;')
     ]),
     sink
   )

@@ -1,9 +1,15 @@
 var defined = require('defined')
-var pull = require('pull-stream')
+var extend = require('xtend')
+var Buffer = require('buffer').Buffer
+var window = require('global/window')
+var parseHeaders = require('parse-headers')
+var pull = require('pull-stream/pull')
+var pullOnce = require('pull-stream/sources/once')
+var pullThrough = require('pull-stream/throughs/through')
+var pullCollect = require('pull-stream/sinks/collect')
 var pullDefer = require('pull-defer')
 var pullJson = require('pull-json-doubleline')
 var pullPeek = require('pull-peek')
-var xhr = require('xhr')
 
 var jsonStreamType = 'application/json; boundary=NLNL'
 /*
@@ -16,10 +22,11 @@ for source or sink return progress stream mixed with other stream
 
 */
 
-module.exports = {
+var Xhr = module.exports = {
   async: async,
   source: source,
-  sink: sink
+  sink: sink,
+  XMLHttpRequest: window.XMLHttpRequest
 }
 
 function source (options, cb) {
@@ -28,11 +35,11 @@ function source (options, cb) {
   if (isJsonStream) {
     options.headers = defined(options.headers, {})
     options.headers['accept'] = defined(options.headers['accept'], jsonStreamType)
-    delete options.responseType
+    options = extend(options, { responseType: 'text' })
   }
   async(options, function (err, body, resp) {
     if (err) return defer.abort(err)
-    var stream = pull.once(body)
+    var stream = pullOnce(body)
     if (isJsonStream) {
       stream = pullJson(stream)
     }
@@ -49,24 +56,130 @@ function sink (options, cb) {
       if (Buffer.isBuffer(chunk)) {
         serializer.resolve(pull.through())
       } else {
-        options.headers = defined(options.headers, {})
-        options.headers['content-type'] = defined(options.headers['content-type'], jsonStreamType)
+        options = extend(options, {
+          headers: extend({
+            'content-type': jsonStreamType
+          }, options.headers)
+        })
         serializer.resolve(pullJson.stringify())
       }
     }),
     serializer,
+    pull.map(Buffer),
     pull.collect(function (err, chunks) {
       if (err) return cb(err)
-      options.body = Buffer.concat(chunks.map(Buffer)).buffer
 
-      async(options, cb)
+      var body = Buffer.concat(chunks).buffer
+
+      async(extend(options, { body: body }), cb)
     })
   )
 }
 
 
 function async (options, cb) {
-  return xhr(options, function (err, resp, body) {
-    cb(err, body, resp)
-  })
+  options = defined(options, {})
+  
+  var xhr = defined(options.xhr, null)
+  if (!xhr) {
+    xhr = new Xhr.XMLHttpRequest()
+  }
+
+  var url = xhr.url = defined(options.url)
+  var method = xhr.method = defined(options.method, 'GET')
+  var responseType = xhr.responseType = defined(options.responseType, 'text')
+  var headers = xhr.headers = extend(options.headers)
+  var body = defined(options.body, options.data, null)
+
+  if (!body && 'json' in options && method !== 'GET' && method !== 'HEAD') {
+    headers["content-type"] || headers["Content-Type"] || (headers["Content-Type"] = "application/json") //Don't override existing accept header declared by user
+    body = JSON.stringify(options.json, null, 2)
+  }
+
+  if (responseType === 'json') {
+    headers["accept"] || headers["Accept"] || (headers["Accept"] = "application/json") //Don't override existing accept header declared by user
+  }
+
+  if (typeof options.timeout === 'number') {
+    xhr.timeout = options.timeout
+  }
+
+  if (typeof options.beforeOpen === 'function') {
+    options.beforeOpen(xhr)
+  }
+
+  xhr.addEventListener('load', handleSuccess)
+  xhr.addEventListener('error', handleError)
+  xhr.addEventListener('abort', handleError)
+  xhr.addEventListener('timeout', handleError)
+
+  xhr.open(method, url, true, options.username, options.password)
+
+  // has to be after open
+  xhr.withCredentials = !!options.withCredentials
+
+  // has to be after open
+  for (key in headers) {
+    if (headers.hasOwnProperty(key)) {
+      xhr.setRequestHeader(key, headers[key])
+    }
+  }
+
+  if (typeof options.beforeSend === 'function') {
+    options.beforeSend(xhr)
+  }
+
+  xhr.send(body)
+  
+  return xhr
+
+  function handleError (err) {
+    if(!(err instanceof Error)){
+      var type = err && err.type || 'unknown'
+      var message = 'XMLHttpRequest Error: ' + type
+      err = new Error(message)
+    }
+
+    var response = {
+      body: undefined,
+      headers: {},
+      statusCode: xhr.status,
+      method: method,
+      url: url,
+      rawRequest: xhr
+    }
+
+    cb(err, response)
+  }
+
+  function handleSuccess (ev) {
+    var response = {}
+    var err 
+    if (xhr.status !== 0){
+      response = {
+        body: getBody(),
+        statusCode: xhr.status,
+        method: method,
+        headers: {},
+        url: url,
+        rawRequest: xhr
+      }
+      response.headers = parseHeaders(xhr.getAllResponseHeaders())
+    } else {
+      err = new Error('XMLHttpRequest Error: internal')
+    }
+    cb(err, response.body, response)
+  }
+
+  function getBody () {
+    var body = xhr.response
+
+    if (responseType === 'json') {
+      try {
+        body = JSON.parse(body)
+      } catch (e) {}
+    }
+
+    return body
+  }
 }

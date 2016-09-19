@@ -1,10 +1,12 @@
 # pull-xhr
 
-[`window.XMLHttpRequest`](https://github.com/naugtur/xhr) as a (pseudo) [`pull-stream`](https://pull-stream.github.io)
+[`window.XMLHttpRequest`](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) as a (pseudo) [`pull-stream`](https://pull-stream.github.io)
 
 ```shell
 npm install --save pull-xhr
 ```
+
+only supports modern browsers and IE 10+
 
 ## api
 

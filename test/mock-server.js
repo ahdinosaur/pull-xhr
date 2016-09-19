@@ -1,6 +1,7 @@
 const pull = require('pull-stream')
 const pullJson = require('pull-json-doubleline')
 const toPull = require('stream-to-pull-stream')
+const Buffer = require('buffer').Buffer
 
 module.exports = function handler (req, res) {
   console.log('mock:', req.method, req.url)
@@ -9,7 +10,7 @@ module.exports = function handler (req, res) {
     res.end('')
   } else if (req.url === '/mock/no-content') {
     res.statusCode = 204
-    res.end()
+    res.end('')
   } else if (req.url === '/mock/timeout') {
     setTimeout(function () {
       res.statusCode = 200
@@ -27,8 +28,8 @@ module.exports = function handler (req, res) {
   } else if (req.url === '/mock/source-binary') {
     pull(
       pull.values([
-        new Buffer(['a', 's', 'd', 'f']),
-        new Buffer(['j', 'k', 'l', ';'])
+        Buffer(['a', 's', 'd', 'f']),
+        Buffer(['j', 'k', 'l', ';'])
       ]),
       toPull.sink(res)
     )
