@@ -1,6 +1,6 @@
 {
   "name": "pull-xhr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "window.XMLHttpRequest as a pull stream",
   "main": "index.js",
   "scripts": {
