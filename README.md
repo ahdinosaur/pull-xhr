@@ -24,6 +24,18 @@ use for downloads. the source is the response.
 
 use for uploads. the sink is the request.
 
+## data structures
+
+TODO
+
+### Options
+
+### Error
+
+### Body
+
+### Response
+
 ## license
 
 The Apache License
