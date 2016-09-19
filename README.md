@@ -10,19 +10,20 @@ only supports modern browsers and IE 10+
 
 ## api
 
-### `pullXhr = require('pull-xhr')`
+### `Xhr = require('pull-xhr')`
 
-`request` is an object with:
+`request` (`req`) is an object with:
 
 - `url`: default `''` - string to remote location to [open](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open)
 - `method`: default `'GET'` - string of http method to [open](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open)
 - `responseType`: default `'text'` - string of [response type](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/responseText)
 - `headers`: default `{}` - object to [set request header names to values](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/setRequestHeader)
 - `body`: default `null` - object to [send as request](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/send)
+- `json`: object to be stringified as json request body
 - `beforeOpen`: function `(xhr) => {}` called before [open](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open)
 - `beforeSend`: function `(xhr) => {}` called before [send](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/send)
 
-`response` is an object with:
+`response` (`res`) is an object with:
 
 - `headers`: object from [received response header names to values](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/getAllResponseHeaders)
 - `body`: object from [response body](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/response)
@@ -32,19 +33,19 @@ only supports modern browsers and IE 10+
 - `method`: string of http method to [open](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open)
 - `xhr`: [raw XMLHttpRequest instance](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest)
 
-## pullXhr.async(request, cb(err, response.body, response))
+## `Xhr.async(req, cb(err, res.body, res))`
 
 don't use streams at all. just ask a question and get an answer.
 
-## pullXhr.source(request, cb (err, response)) => source
+## `Xhr.source(req, cb (err, res)) => source`
 
-use for downloads. the source is the response.
+use for downloads. the source is the res
 
-if `request.responseType === 'json'` the source will be parsed from [double newline delimited json](https://github.com/dominictarr/pull-json-doubleline).
+if `req.responseType === 'json'` the source will be parsed from [double newline delimited json](https://github.com/dominictarr/pull-json-doubleline).
 
-## pullXhr.sink(request, cb(err, response.body, response)) => sink
+## `Xhr.sink(req, cb(err, res.body, res)) => sink`
 
-use for uploads. the sink is the request.
+use for uploads. the sink is the req.
 
 if the first chunk in the source to the sink is not a [Buffer](https://github.com/feross/buffer), the source will be stringified to [double newline delimited json](https://github.com/dominictarr/pull-json-doubleline).
 
