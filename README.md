@@ -10,31 +10,45 @@ only supports modern browsers and IE 10+
 
 ## api
 
-### `xhr = require('pull-xhr')`
+### `pullXhr = require('pull-xhr')`
 
-## xhr.async(opts, cb(err, body, resp))
+`request` is an object with:
+
+- `url`: default `''` - string to remote location to [open](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open)
+- `method`: default `'GET'` - string of http method to [open](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open)
+- `responseType`: default `'text'` - string of [response type](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/responseText)
+- `headers`: default `{}` - object to [set request header names to values](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/setRequestHeader)
+- `body`: default `null` - object to [send as request](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/send)
+- `beforeOpen`: function `(xhr) => {}` called before [open](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open)
+- `beforeSend`: function `(xhr) => {}` called before [send](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/send)
+
+`response` is an object with:
+
+- `headers`: object from [received response header names to values](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/getAllResponseHeaders)
+- `body`: object from [response body](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/response)
+- `statusCode`: number from [response status code](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/status)
+- `statusMessage`: string from [response status](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/statusText)
+- `url`: string to remote location to [open](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open)
+- `method`: string of http method to [open](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open)
+- `xhr`: [raw XMLHttpRequest instance](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest)
+
+## pullXhr.async(request, cb(err, response.body, response))
 
 don't use streams at all. just ask a question and get an answer.
 
-## xhr.source(opts, cb (err, resp)) => source
+## pullXhr.source(request, cb (err, response)) => source
 
 use for downloads. the source is the response.
 
-## xhr.sink(opts, cb(err, body, resp)) => sink
+if `request.responseType === 'json'` the source will be parsed from [double newline delimited json](https://github.com/dominictarr/pull-json-doubleline).
+
+## pullXhr.sink(request, cb(err, response.body, response)) => sink
 
 use for uploads. the sink is the request.
 
-## data structures
+if the first chunk in the source to the sink is not a [Buffer](https://github.com/feross/buffer), the source will be stringified to [double newline delimited json](https://github.com/dominictarr/pull-json-doubleline).
 
-TODO
-
-### Options
-
-### Error
-
-### Body
-
-### Response
+then everything is [concat](https://nodejs.org/api/buffer.html#buffer_class_method_buffer_concat_list_totallength) and sent as an [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/API/ArrayBuffer).
 
 ## license
 

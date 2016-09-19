@@ -89,7 +89,7 @@ function async (options, cb) {
   var method = xhr.method = defined(options.method, 'GET')
   var responseType = xhr.responseType = defined(options.responseType, 'text')
   var headers = xhr.headers = extend(options.headers)
-  var body = defined(options.body, options.data, null)
+  var body = defined(options.body, null)
 
   if (!body && 'json' in options && method !== 'GET' && method !== 'HEAD') {
     headers['content-type'] || headers['Content-Type'] || (headers['Content-Type'] = 'application/json') // Don't override existing accept header declared by user
@@ -148,7 +148,7 @@ function async (options, cb) {
   function handleSuccess (ev) {
     var response = getResponse()
     var err
-    if (xhr.status !== 0) {
+    if (xhr.statusCode !== 0) {
       response.headers = parseHeaders(xhr.getAllResponseHeaders())
     } else {
       err = new Error('XMLHttpRequest Error: internal')
@@ -172,10 +172,11 @@ function async (options, cb) {
     return {
       body: getBody(),
       statusCode: xhr.status,
+      statusMessage: xhr.statusText,
+      url: url,
       method: method,
       headers: {},
-      url: url,
-      rawRequest: xhr
+      xhr: xhr
     }
   }
 }
