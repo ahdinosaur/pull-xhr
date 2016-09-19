@@ -5,6 +5,7 @@ var window = require('global/window')
 var parseHeaders = require('parse-headers')
 var pull = require('pull-stream/pull')
 var pullOnce = require('pull-stream/sources/once')
+var pullMap = require('pull-stream/throughs/map')
 var pullThrough = require('pull-stream/throughs/through')
 var pullCollect = require('pull-stream/sinks/collect')
 var pullDefer = require('pull-defer')
@@ -54,7 +55,7 @@ function sink (options, cb) {
   return pull(
     pullPeek(function (end, chunk) {
       if (Buffer.isBuffer(chunk)) {
-        serializer.resolve(pull.through())
+        serializer.resolve(pullThrough())
       } else {
         options = extend(options, {
           headers: extend({
@@ -65,8 +66,8 @@ function sink (options, cb) {
       }
     }),
     serializer,
-    pull.map(Buffer),
-    pull.collect(function (err, chunks) {
+    pullMap(Buffer),
+    pullCollect(function (err, chunks) {
       if (err) return cb(err)
 
       var body = Buffer.concat(chunks).buffer
